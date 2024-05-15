@@ -18,23 +18,21 @@ class Main {
         }
 
         while (true) {
-            boolean[][] isVisited = new boolean[N][N];
-            List<List<int[]>> unionList = new ArrayList<>();
             Queue<int[]> q = new LinkedList<>();
+            boolean[][] isVisited = new boolean[N][N];
+            boolean isMoved = false;
 
             for (int i = 0; i < N; i++) {
                 for (int j = 0; j < N; j++) {
                     if (isVisited[i][j])    continue;
-
                     int[] start = {i, j};
                     List<int[]> union = new ArrayList<>();
+                    isVisited[i][j] = true;
                     q.add(start);
                     union.add(start);
-
+                    
                     while (!q.isEmpty()) {
                         int[] curr = q.poll();
-                        if (isVisited[curr[0]][curr[1]])  continue;
-                        isVisited[curr[0]][curr[1]] = true;
                         for (int r = 0; r < 4; r++) {
                             int[] neighbor = {x[r] + curr[0], y[r] + curr[1]};
                             if (neighbor[0] >= 0 && neighbor[1] >= 0 && neighbor[0] < N && neighbor[1] < N) {
@@ -42,36 +40,29 @@ class Main {
                                 if (gap >= L && gap <= R && !isVisited[neighbor[0]][neighbor[1]]) {
                                     q.add(neighbor);
                                     union.add(neighbor);
+                                    isVisited[neighbor[0]][neighbor[1]] = true;
+                                    isMoved = true;
                                 }
                             }
                         }
                     }
-                    if (union.size() > 1)   unionList.add(union);
+                    if (union.size() > 1) {
+                        int unionPop = 0;
+                        for (int[] country : union) {
+                            unionPop += pop[country[0]][country[1]];
+                        }
+                        for (int[] country : union) {
+                            pop[country[0]][country[1]] = unionPop / union.size();
+                        }
+                    }   
                 }
             }
-
-            if (unionList.isEmpty()) {
+            if (isMoved) {
+                result++;
+            } else {
                 System.out.println(result);
                 return;
             }
-            boolean isMoved = false;
-            for (List<int[]> union : unionList) {
-                int unionPop = 0;
-                for (int[] country : union) {
-                    unionPop += pop[country[0]][country[1]];
-                }
-                for (int[] country : union) {
-                    if (pop[country[0]][country[1]] != unionPop / union.size()) {
-                        isMoved = true;
-                        pop[country[0]][country[1]] = unionPop / union.size();
-                    }
-                }
-            }
-            if (!isMoved) {
-                System.out.println(result);
-                return;
-            }
-            result++;
         }
     }
 }
