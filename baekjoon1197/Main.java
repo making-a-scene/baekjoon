@@ -1,62 +1,60 @@
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 class Main {
+    static int[] parent;
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String[] input = br.readLine().split(" ");
-        int V = Integer.parseInt(input[0]);
-        int E = Integer.parseInt(input[1]);
-        int result = 0;
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int V = Integer.parseInt(st.nextToken());
+        int E = Integer.parseInt(st.nextToken());
 
-        List<List<int[]>> edges = new ArrayList<>(V + 1);
-        for (int i = 0; i <= V; i++) {
-            edges.add(new ArrayList<>());
+        PriorityQueue<Edge> edges = new PriorityQueue<>((e1, e2) -> e1.weight - e2.weight);
+        parent = new int[V + 1];
+
+        for (int i = 1; i <= V; i++) {
+            parent[i] = i;
         }
 
         for (int i = 0; i < E; i++) {
-            String[] edgeInfo = br.readLine().split(" ");
-            int A = Integer.parseInt(edgeInfo[0]);
-            int B = Integer.parseInt(edgeInfo[1]);
-            int C = Integer.parseInt(edgeInfo[2]);
-            edges.get(A).add(new int[]{B, C});
-            edges.get(B).add(new int[]{A, C});
-        }
-        if (V == 1) {
-            System.out.println(edges.get(1).get(0)[1]);
-            return;
+            st = new StringTokenizer(br.readLine());
+            int A = Integer.parseInt(st.nextToken());
+            int B = Integer.parseInt(st.nextToken());
+            int C = Integer.parseInt(st.nextToken());
+            edges.add(new Edge(A, B, C));
         }
 
-        Set<Integer> visited = new HashSet<>();
-        visited.add(1);
-        while (visited.size() < V) {
-            int minWeight = Integer.MAX_VALUE;
-            int minNode = 0;
-            
-            for (int node : visited) {
-                for (int[] neighbor : edges.get(node)) {
-                    int neighborNode = neighbor[0];
-                    int weight = neighbor[1];
-                    
-                    if (visited.contains(neighborNode)) continue;
-                    
-                    if (weight < minWeight) {
-                        minWeight = weight;
-                        minNode = neighborNode;
-                    }
-                }
+        int minWeight = 0;
+        int edgeCount = 0;
+        while (edgeCount < V - 1) {
+            Edge curr = edges.poll();
+            int rootA = find(curr.nodeA);
+            int rootB = find(curr.nodeB);
+            if (rootA != rootB) {
+                parent[rootB] = rootA; // union
+                minWeight += curr.weight;
+                edgeCount++;
             }
-            result += minWeight;
-            visited.add(minNode);
         }
         
-        System.out.println(result);
-        /* 
-         * visited에 있는 모든 각 노드들에 대해 이웃 노드 확인
-         * 이미 visited에 있는 이웃 노드면 continue
-         * 새로운 이웃 노드면 가중치 확인 -> 최솟값 갱신
-         * 가중치가 최소가 되는 노드를 visited에 추가
-         * 
-         */
+        System.out.println(minWeight);
+    }
+
+    static class Edge {
+        int nodeA;
+        int nodeB;
+        int weight;
+        Edge(int nodeA, int nodeB, int weight) {
+            this.nodeA = nodeA;
+            this.nodeB = nodeB;
+            this.weight = weight;
+        }
+    }
+
+    private static int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
     }
 }
